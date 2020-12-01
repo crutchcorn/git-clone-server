@@ -8,11 +8,15 @@ const express = require('express')
 const app = express()
 const port = 3000
 
+const {clone} = require('./clone');
+
 const shrinkRay = require('shrink-ray-current');
+const {
+  performance
+} = require('perf_hooks');
 
 // Brotli
-// app.use(shrinkRay());
-
+app.use(shrinkRay());
 
 async function walk(dir) {
     const finalObj = {};
@@ -24,6 +28,7 @@ async function walk(dir) {
             continue;
         }
 
+        // b64 encoding takes literally 16 seconds on NextJS repo clone 😬
         const contents = await fs.promises.readFile(entry, {encoding: 'base64'});
 
         finalObj[d.name] = contents;
@@ -42,24 +47,20 @@ app.get('/', (req, res) => {
 
     const dir = path.resolve("./tmp", repoPath)
 
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
+    const start = performance.now();
 
-    iso.clone({
-        fs,
-        http,
-        url,
-        singleBranch: true,
-        depth: 1,
-        dir,
-    })
+    clone(url,dir)
     .then(() => {
+        console.log('Clone done', performance.now() - start)
         return walk(dir)
     })
     .then(val => {
+        console.log('Walk done', performance.now() - start)
         res.send(JSON.stringify(val));
     })
+    .catch(e => console.error(e))
+
+    // fs.rmdirSync(dir, { recursive: true })
 })
 
 app.listen(port, () => {
