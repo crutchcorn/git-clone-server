@@ -10,7 +10,14 @@
   "author": "Corbin Crutchley",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.17.1",
     "isomorphic-git": "^1.8.0",
-    "nodegit": "^0.27.0"
+    "nodegit": "^0.27.0",
+    "shrink-ray-current": "^4.1.2",
+    "node-zopfli-es": "~1.0.3"
+  },
+  "// Explain": "Brotli is built into-node 12+, so we can avoid a broken node dep",
+  "engines" : { 
+    "node" : ">=11..0" 
   }
 }
