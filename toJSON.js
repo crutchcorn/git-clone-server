@@ -24,22 +24,24 @@ async function toArray(asyncIterator){
 }
 
 async function walk(dir) {
-    const items = await toArray(await fs.promises.opendir(dir));
-    return await items.reduce(async (prev, d) => {
-        prev = await prev;
+    const finalObj = {};
+    for await (const d of await fs.promises.opendir(dir)) {
         const entry = path.join(dir, d.name);
 
         if (d.isDirectory()) {
-            prev[d.name] = await walk(entry);
-            return prev;
+            finalObj[d.name] = await walk(entry);
+            continue;
         }
 
         const contents = await fs.promises.readFile(entry);
 
-        prev[d.name] = contents;
+        finalObj[d.name] = contents;
 
-        return prev;
-    }, Promise.resolve({}))
+        continue;
+
+    }
+
+    return finalObj;
 }
 
 (async () => {
